@@ -12,10 +12,12 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import org.alfresco.repo.content.AbstractContentStore;
 import org.alfresco.repo.content.ContentStore;
 import org.alfresco.repo.content.ContentStoreCreatedEvent;
+import org.alfresco.repo.content.UnsupportedContentUrlException;
 import org.alfresco.repo.content.filestore.FileContentStore;
 import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.util.GUID;
+import org.alfresco.util.Pair;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.commons.logging.Log;
@@ -27,6 +29,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Collections;
@@ -47,6 +50,7 @@ public class S3ContentStore extends AbstractContentStore
     private String secretKey;
     private String bucketName;
     private String regionName;
+    private String rootDirectory;
 
     @Override
     public boolean isWriteSupported() {
@@ -56,7 +60,8 @@ public class S3ContentStore extends AbstractContentStore
     @Override
     public ContentReader getReader(String contentUrl) {
 
-        return new S3ContentReader(contentUrl, s3Client, bucketName);
+        String key = makeS3Key(contentUrl);
+        return new S3ContentReader(key, contentUrl, s3Client, bucketName);
 
     }
 
@@ -101,6 +106,10 @@ public class S3ContentStore extends AbstractContentStore
         this.regionName = regionName;
     }
 
+    public void setRootDirectory(String rootDirectory) {
+        this.rootDirectory = rootDirectory;
+    }
+
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
@@ -116,7 +125,9 @@ public class S3ContentStore extends AbstractContentStore
             contentUrl = createNewUrl();
         }
 
-        return new S3ContentWriter(contentUrl, existingContentReader, s3Client, transferManager, bucketName);
+        String key = makeS3Key(contentUrl);
+
+        return new S3ContentWriter(bucketName, key, contentUrl, existingContentReader, s3Client, transferManager);
 
     }
 
@@ -141,6 +152,24 @@ public class S3ContentStore extends AbstractContentStore
         String newContentUrl = sb.toString();
         // done
         return newContentUrl;
+
+    }
+
+    private String makeS3Key(String contentUrl)
+    {
+        // take just the part after the protocol
+        Pair<String, String> urlParts = super.getContentUrlParts(contentUrl);
+        String protocol = urlParts.getFirst();
+        String relativePath = urlParts.getSecond();
+        // Check the protocol
+        if (!protocol.equals(FileContentStore.STORE_PROTOCOL))
+        {
+            throw new UnsupportedContentUrlException(this, protocol + PROTOCOL_DELIMITER + relativePath);
+        }
+        // get the file
+        File file = new File(rootDirectory, relativePath);
+
+        return rootDirectory + "/" + relativePath;
 
     }
 

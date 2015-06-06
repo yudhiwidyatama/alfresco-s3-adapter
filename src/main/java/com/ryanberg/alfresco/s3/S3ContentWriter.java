@@ -23,23 +23,23 @@ public class S3ContentWriter extends AbstractContentWriter {
 
     private TransferManager transferManager;
     private AmazonS3 client;
-    private String contentUrl;
+    private String key;
     private String bucketName;
     private File tempFile;
     private long size;
 
-    public S3ContentWriter(String contentUrl, ContentReader existingContentReader, AmazonS3 client, TransferManager transferManager, String bucketName) {
+    public S3ContentWriter(String bucketName, String key, String contentUrl, ContentReader existingContentReader, AmazonS3 client, TransferManager transferManager) {
         super(contentUrl, existingContentReader);
+        this.key = key;
         this.client = client;
         this.transferManager = transferManager;
-        this.contentUrl = contentUrl;
         this.bucketName = bucketName;
         addListener(new S3StreamListener(this));
     }
 
     @Override
     protected ContentReader createReader() throws ContentIOException {
-        return new S3ContentReader(getContentUrl(), client, bucketName);
+        return new S3ContentReader(key, getContentUrl(), client, bucketName);
     }
 
     @Override
@@ -71,21 +71,16 @@ public class S3ContentWriter extends AbstractContentWriter {
         this.size = size;
     }
 
-    @Override
-    public String getContentUrl() {
-        return contentUrl;
-    }
-
     public TransferManager getTransferManager() {
         return transferManager;
     }
 
-    public AmazonS3 getClient() {
-        return client;
-    }
-
     public String getBucketName() {
         return bucketName;
+    }
+
+    public String getKey() {
+        return key;
     }
 
     public File getTempFile() {

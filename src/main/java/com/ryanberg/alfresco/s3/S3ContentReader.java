@@ -7,6 +7,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import org.alfresco.repo.content.AbstractContentReader;
 import org.alfresco.service.cmr.repository.ContentIOException;
 import org.alfresco.service.cmr.repository.ContentReader;
+import org.alfresco.util.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -17,7 +18,7 @@ public class S3ContentReader extends AbstractContentReader {
 
     private static final Log logger = LogFactory.getLog(S3ContentReader.class);
 
-    private String contentUrl;
+    private String key;
     private AmazonS3 client;
     private String bucketName;
     private S3Object fileObject;
@@ -28,9 +29,9 @@ public class S3ContentReader extends AbstractContentReader {
      * @param contentUrl the content URL - this should be relative to the root of the store
      * @param bucketName
      */
-    protected S3ContentReader(String contentUrl, AmazonS3 client, String bucketName) {
+    protected S3ContentReader(String key, String contentUrl, AmazonS3 client, String bucketName) {
         super(contentUrl);
-        this.contentUrl = contentUrl;
+        this.key = key;
         this.client = client;
         this.bucketName = bucketName;
         this.fileObject = getObject();
@@ -40,8 +41,8 @@ public class S3ContentReader extends AbstractContentReader {
     @Override
     protected ContentReader createReader() throws ContentIOException {
 
-        logger.debug("Called createReader for contentUrl -> " + contentUrl);
-        return new S3ContentReader(contentUrl, client, bucketName);
+        logger.debug("Called createReader for contentUrl -> " + getContentUrl() + ", Key: " + key);
+        return new S3ContentReader(key, getContentUrl(), client, bucketName);
     }
 
     @Override
@@ -90,7 +91,8 @@ public class S3ContentReader extends AbstractContentReader {
         S3Object object = null;
 
         try {
-            object = client.getObject(bucketName, contentUrl);
+            logger.debug("GETTING OBJECT - BUCKET: " + bucketName + " KEY: " + key);
+            object = client.getObject(bucketName, key);
         } catch (Exception e) {
             logger.error("Unable to fetch S3 Object", e);
         }
