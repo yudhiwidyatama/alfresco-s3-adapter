@@ -29,7 +29,7 @@ public class S3StreamListener implements ContentStreamListener {
 
         try {
 
-            logger.debug("Writing to s3://" + writer.getBucketName() + "/" + writer.getContentUrl());
+            logger.debug("Writing to s3://" + writer.getBucketName() + "/" + writer.getKey());
             TransferManager transferManager = writer.getTransferManager();
 
             transferManager.upload(writer.getBucketName(), writer.getKey(), writer.getTempFile());

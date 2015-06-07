@@ -3,7 +3,6 @@ package com.ryanberg.alfresco.s3;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -19,7 +18,6 @@ import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.util.GUID;
 import org.alfresco.util.Pair;
 import org.apache.commons.lang3.StringUtils;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
@@ -29,7 +27,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Collections;
@@ -107,7 +104,13 @@ public class S3ContentStore extends AbstractContentStore
     }
 
     public void setRootDirectory(String rootDirectory) {
-        this.rootDirectory = rootDirectory;
+
+        String dir = rootDirectory;
+        if (dir.startsWith("/")) {
+            dir = dir.substring(1);
+        }
+
+        this.rootDirectory = dir;
     }
 
     @Override
@@ -166,8 +169,7 @@ public class S3ContentStore extends AbstractContentStore
         {
             throw new UnsupportedContentUrlException(this, protocol + PROTOCOL_DELIMITER + relativePath);
         }
-        // get the file
-        File file = new File(rootDirectory, relativePath);
+
 
         return rootDirectory + "/" + relativePath;
 
