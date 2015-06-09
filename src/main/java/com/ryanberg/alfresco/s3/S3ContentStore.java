@@ -179,8 +179,9 @@ public class S3ContentStore extends AbstractContentStore
     public boolean delete(String contentUrl) {
 
         try {
-            logger.debug("Deleting object from S3 with url: " + contentUrl);
-            s3Client.deleteObject(bucketName, contentUrl);
+            String key = makeS3Key(contentUrl);
+            logger.debug("Deleting object from S3 with url: " + contentUrl + ", key: " + key);
+            s3Client.deleteObject(bucketName, key);
             return true;
         } catch (Exception e) {
             logger.error("Error deleting S3 Object", e);
@@ -189,10 +190,6 @@ public class S3ContentStore extends AbstractContentStore
         return false;
 
     }
-
-
-
-
 
     /**
      * Publishes an event to the application context that will notify any interested parties of the existence of this
