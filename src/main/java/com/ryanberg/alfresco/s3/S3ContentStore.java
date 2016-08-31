@@ -48,6 +48,7 @@ public class S3ContentStore extends AbstractContentStore
     private String bucketName;
     private String regionName;
     private String rootDirectory;
+    private String endpoint;
 
     @Override
     public boolean isWriteSupported() {
@@ -81,12 +82,16 @@ public class S3ContentStore extends AbstractContentStore
         }
 
         s3Client = new AmazonS3Client(credentials);
-        Region region = Region.getRegion(Regions.fromName(this.regionName));
-        s3Client.setRegion(region);
+        if (this.endpoint != null)
+            s3Client.setEndpoint(this.endpoint);
+        else
+            s3Client.setEndpoint("http://ecsdropup.telkom.co.id:9020");
+        //Region region = Region.getRegion(Regions.fromName(this.regionName));
+        //s3Client.setRegion(region);
         transferManager = new TransferManager(s3Client);
     }
 
-
+    public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
     public void setAccessKey(String accessKey) {
         this.accessKey = accessKey;
     }
