@@ -10,6 +10,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
+import com.amazonaws.services.s3.internal.S3Signer;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import org.alfresco.repo.content.AbstractContentStore;
 import org.alfresco.repo.content.ContentStore;
@@ -84,7 +85,7 @@ public class S3ContentStore extends AbstractContentStore
             }
         }
 
-        s3Client = new AmazonS3Client(credentials, new ClientConfiguration().withSignerOverride("AWS3SignerType"));
+        s3Client = new AmazonS3Client(credentials, new ClientConfiguration().withSignerOverride("S3SignerType"));
         s3Client.setS3ClientOptions(new S3ClientOptions().withPathStyleAccess(true));
 
         if (this.endpoint != null)
