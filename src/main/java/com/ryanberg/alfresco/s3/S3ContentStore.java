@@ -1,7 +1,9 @@
 package com.ryanberg.alfresco.s3;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.SignerFactory;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -82,8 +84,9 @@ public class S3ContentStore extends AbstractContentStore
             }
         }
 
-        s3Client = new AmazonS3Client(credentials);
+        s3Client = new AmazonS3Client(credentials, new ClientConfiguration().withSignerOverride("AWS3SignerType"));
         s3Client.setS3ClientOptions(new S3ClientOptions().withPathStyleAccess(true));
+
         if (this.endpoint != null)
             s3Client.setEndpoint(this.endpoint);
         else
