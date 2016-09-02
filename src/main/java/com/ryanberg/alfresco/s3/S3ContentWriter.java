@@ -43,6 +43,12 @@ public class S3ContentWriter extends AbstractContentWriter {
     }
 
     @Override
+    protected void finalize() throws Throwable {
+
+        super.finalize();
+    }
+
+    @Override
     protected WritableByteChannel getDirectWritableChannel() throws ContentIOException {
 
         try

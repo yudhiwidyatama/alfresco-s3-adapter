@@ -11,6 +11,8 @@ import org.alfresco.util.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
@@ -39,6 +41,12 @@ public class S3ContentReader extends AbstractContentReader {
     }
 
     @Override
+    protected void finalize() throws Throwable {
+        this.fileObject.close();
+        super.finalize();
+    }
+
+    @Override
     protected ContentReader createReader() throws ContentIOException {
 
         logger.debug("Called createReader for contentUrl -> " + getContentUrl() + ", Key: " + key);
@@ -53,7 +61,24 @@ public class S3ContentReader extends AbstractContentReader {
         }
 
         try {
-            return Channels.newChannel(fileObject.getObjectContent());
+            final ReadableByteChannel ch0 = Channels.newChannel(fileObject.getObjectContent());
+            return new ReadableByteChannel() {
+                @Override
+                public int read(ByteBuffer dst) throws IOException {
+                    return ch0.read(dst);
+                }
+
+                @Override
+                public boolean isOpen() {
+                    return ch0.isOpen();
+                }
+
+                @Override
+                public void close() throws IOException {
+                    ch0.close();
+                    fileObject.close();
+                }
+            };
         } catch ( Exception e ) {
             throw new ContentIOException("Unable to retrieve content object from S3", e);
         }
